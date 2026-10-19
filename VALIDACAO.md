@@ -1,3 +1,19 @@
+# Validação — versão 1.1.2
+
+Data: 19/10/2026.
+
+- Sintaxe do JavaScript verificada com `node --check`.
+- Fluxo de interface executado em Node com DOM e respostas HTTP simulados: CPF formatado → consulta direta → dois alunos → seleção do aluno → catálogo; token enviado nas operações seguintes; Sair limpa o token do navegador; CPF não localizado mantém a tela de identificação; dashboard exige sua senha. Nenhuma requisição de envio/validação WhatsApp foi feita pelo fluxo.
+- Revisão estática: identificação depende de CPF válido com vínculo local; sessão de quinze minutos com token em hash; vínculo relido em alunos, catálogo e checkout; estados de sessões antigas rejeitados; rotas OTP removidas; módulo de acesso não contém chamadas HTTP. Essas verificações são inspeção de código, não execução PHP.
+- Comparação dos arquivos confirma que checkout, sincronização TOTVS, dashboard e módulos financeiros não tiveram alterações nesta versão.
+- Integridade do ZIP, pasta raiz e número de versão conferidos.
+
+Limites: não há PHP ou navegador instalado neste ambiente. Não foram executados lint PHP, teste em WordPress/MySQL real ou chamadas reais TOTVS/K8. Homologar em WordPress: CPF válido e inválido, CPF sem vínculo, responsáveis sem telefone ou com telefone divergente, seleção de outro aluno, expiração da sessão e remoção de vínculo após sincronização. Mensagens WhatsApp não fazem mais parte do fluxo. O painel de acompanhamento continua protegido por senha.
+
+Os registros abaixo se referem à versão recebida e são mantidos como histórico. Os testes antigos de OTP/telefone não descrevem mais a regra de acesso da versão 1.1.2.
+
+---
+
 # Validação — versão 1.1.0
 
 Data: 23/09/2026.

@@ -2,7 +2,6 @@
 'use strict';
 const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money = v => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(v)/100);
-const help = `<div class="jao-help"><a class="jao-link secondary" href="https://wa.me/5541996261884?text=Ol%C3%A1%2C%20preciso%20atualizar%20meu%20WhatsApp%20no%20cadastro%20para%20acessar%20as%20atividades%20opcionais." target="_blank" rel="noopener noreferrer">Atualizar WhatsApp com a secretaria</a><p>Você também pode alterar seu número pelo Portal do Aluno. Após alterar o cadastro, aguarde a sincronização da escola e consulte seu CPF novamente.</p></div>`;
 document.querySelectorAll('.jao').forEach(root => {
  const view=root.querySelector('.jao-view'), notice=root.querySelector('.jao-notice');
  let token='',student='',csrf='',filters={},page=1;
@@ -20,16 +19,12 @@ document.querySelectorAll('.jao').forEach(root => {
  function bind(selector,fn,event='click'){view.querySelector(selector)?.addEventListener(event,e=>{e.preventDefault();run(()=>fn(e));});}
  function reset(){token='';student='';say('');cpfView();}
  function cpfView(){
-   view.innerHTML=`<div class="jao-steps">1. Identificação → 2. Validação → 3. Atividades</div><form class="jao-login"><label>CPF do responsável<input name="cpf" inputmode="numeric" autocomplete="off" maxlength="14" placeholder="000.000.000-00" required></label><button>Consultar CPF</button></form>${help}`;
+   view.innerHTML=`<div class="jao-steps">1. Identificação → 2. Aluno → 3. Atividades</div><form class="jao-login"><label>CPF do responsável<input name="cpf" inputmode="numeric" autocomplete="off" maxlength="14" placeholder="000.000.000-00" required></label><button>Consultar CPF</button></form><p class="jao-help">Informe o CPF cadastrado como responsável na escola para consultar os alunos vinculados.</p>`;
    bind('form',async()=>{
-     const cpf=view.querySelector('[name=cpf]').value.replace(/\D/g,''); const d=await req('preview',{cpf});token=d.token;
-     view.innerHTML=`<div class="jao-login jao-card"><h3>Confirme seu WhatsApp</h3><p>Um código de validação será enviado ao WhatsApp cadastrado com final <strong>${esc(d.last4)}</strong>.</p><p>Se você tem acesso a esse número, toque em continuar.</p><div class="jao-actions"><button data-send>Continuar</button><button class="secondary" data-back>Voltar</button></div></div>${help}`;
-     bind('[data-send]',async()=>{await req('send');otpView();say('Código solicitado. Confira seu WhatsApp.');});bind('[data-back]',reset);
+     const cpf=view.querySelector('[name=cpf]').value.replace(/\D/g,'');
+     const d=await req('identify',{cpf});token=d.token;
+     await studentsView();
    },'submit');
- }
- function otpView(){
-   view.innerHTML=`<form class="jao-login"><h3>Digite o código recebido</h3><label>Código de 6 dígitos<input name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required></label><p>O código é válido por 5 minutos.</p><div class="jao-actions"><button>Validar e ver alunos</button><button type="button" class="secondary" data-reset>Solicitar outro código</button></div></form>${help}`;
-   bind('form',async()=>{const d=await req('check',{code:view.querySelector('[name=code]').value});token=d.token;await studentsView();},'submit');bind('[data-reset]',reset);
  }
  async function studentsView(){
    const d=await req('students');

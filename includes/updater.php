@@ -60,7 +60,7 @@ final class JAO_GitHub_Updater {
             'name'=>'Journey — Atividades Opcionais', 'slug'=>$data['slug'], 'version'=>$data['version'],
             'author'=>'Journey', 'homepage'=>self::URL, 'requires'=>$data['requires'],
             'requires_php'=>$data['requires_php'], 'download_link'=>$data['package'],
-            'sections'=>['description'=>'Atividades por turma, espelho local TOTVS, validação WhatsApp e pagamentos K8.',
+            'sections'=>['description'=>'Atividades por turma, espelho local TOTVS, acesso por CPF e pagamentos K8.',
                 'changelog'=>'Versão '.$data['version'].'. Consulte o histórico em '.self::URL.'/commits/main.'],
         ];
     }

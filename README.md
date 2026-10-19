@@ -1,6 +1,6 @@
 # Journey — Atividades Opcionais
 
-Plugin WordPress 1.1.1. WordPress 6.4+, PHP 8.0+.
+Plugin WordPress 1.1.2. WordPress 6.4+, PHP 8.0+.
 
 ## Instalação e atualização
 
@@ -21,7 +21,7 @@ Consulte [LEIA-ME.md](LEIA-ME.md) para instalação, integrações, shortcodes e
 | `journey-atividades.php` | Inicialização, conflitos com plugins antigos, instalação e cron |
 | `includes/core.php` | Tabelas, configurações, travas e despacho AJAX |
 | `includes/totvs.php` | Consulta DADOSREMAT.2 e sincronização transacional do espelho local |
-| `includes/auth.php` | CPF, WhatsApp NX, OTP, limites e vínculo com alunos |
+| `includes/auth.php` | Identificação por CPF, sessão, limites e vínculo com alunos |
 | `includes/checkout.php` | Catálogo por turma, reservas, cobrança K8 e consulta de pagamentos |
 | `includes/dashboard.php` | Sessão própria, filtros, indicadores e exportação CSV |
 | `includes/admin.php` | Cadastro de atividades, integrações e conferência de cobranças |
@@ -29,12 +29,14 @@ Consulte [LEIA-ME.md](LEIA-ME.md) para instalação, integrações, shortcodes e
 | `includes/updater.php` | Atualização nativa do WordPress a partir do GitHub |
 | `financeiro/` | Cliente K8, tabelas financeiras, sincronização Cobranças/Pay e painéis |
 
-Fluxo: TOTVS → tabelas locais de alunos/responsáveis → CPF + OTP WhatsApp → aluno → atividades autorizadas por turma → reserva local e pedido → cobrança K8 → checkout hospedado → consulta de situação e dashboard.
+Fluxo: TOTVS → tabelas locais de alunos/responsáveis → CPF → aluno → atividades autorizadas por turma → reserva local e pedido → cobrança K8 → checkout hospedado → consulta de situação e dashboard.
 
 Os valores são armazenados em centavos. O pedido preserva os dados e valores da compra. Reservas impedem a compra duplicada de uma atividade pelo mesmo aluno. Uma resposta inconclusiva do K8 mantém o pedido em conferência, sem repetição automática de cobrança. Remoções no espelho não apagam o histórico financeiro.
 
-## Escopo de 1.1.1
+## Escopo de 1.1.2
 
-Inclui apenas mecanismo de atualização, metadados de versão, cache dos assets vinculado à versão e documentação. Não altera schema, valores, contratos de APIs ou regras de inscrição. O plugin recebido possui senha inicial fixa do dashboard; altere-a em **Atividades Journey → Integrações** antes de disponibilizar o painel.
+Remove a confirmação de WhatsApp: CPF cadastrado → alunos → atividades → pagamento. Não há envio NX, OTP ou exigência de telefone. As rotas antigas de envio/checagem foram removidas; sessões anteriores exigem nova consulta de CPF. Os campos NX deixam de aparecer nas integrações, preservando os valores já salvos. A versão 1.1.1 introduziu o atualizador do WordPress mantido nesta versão.
 
-Os relatos de testes da versão original estão em `VALIDACAO.md`. Eles não constituem execução nova nesta versão. Esta publicação ainda requer homologação em WordPress real, incluindo atualização individual/em lote, conservação da pasta e manutenção da ativação, configurações e pedidos. Não foram feitas cobranças ou mensagens reais nesta alteração.
+O acesso depende apenas de conhecer um CPF cadastrado, sem comprovação de posse do documento ou telefone. Mantêm-se a sessão de quinze minutos, limites por IP/CPF, HTTPS, restrição de alunos por vínculo e regras de preço/reserva no servidor. A senha do dashboard continua obrigatória. As tabelas existentes são reaproveitadas, sem apagar configurações ou inscrições.
+
+O plugin recebido possui senha inicial fixa do dashboard; altere-a em **Atividades Journey → Integrações** antes de disponibilizar o painel. Consulte `VALIDACAO.md` para os testes e seus limites. Não foram feitas cobranças ou mensagens reais nesta alteração.

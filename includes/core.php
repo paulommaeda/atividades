@@ -48,7 +48,7 @@ function jao_db_update($table,$data,$where) { global $wpdb; if ($wpdb->update($w
 function jao_dispatch() {
     try {
         $ip=jao_ajax_guard(); $op=jao_post('op');
-        $routes=['preview'=>'jao_preview','send'=>'jao_send','check'=>'jao_bird_check','students'=>'jao_students','catalog'=>'jao_catalog','checkout'=>'jao_checkout','dash_session'=>'jao_dash_session','dash_login'=>'jao_dash_login','dash_query'=>'jao_dash_query','dash_refresh'=>'jao_dash_refresh','dash_export'=>'jao_dash_export','dash_logout'=>'jao_dash_logout'];
+        $routes=['identify'=>'jao_identify','students'=>'jao_students','catalog'=>'jao_catalog','checkout'=>'jao_checkout','dash_session'=>'jao_dash_session','dash_login'=>'jao_dash_login','dash_query'=>'jao_dash_query','dash_refresh'=>'jao_dash_refresh','dash_export'=>'jao_dash_export','dash_logout'=>'jao_dash_logout'];
         if (!isset($routes[$op])) throw new RuntimeException('Operação inválida.');
         $data=$routes[$op](); wp_send_json_success($data);
     } catch (Throwable $e) { wp_send_json_error(['message'=>$e->getMessage()],400); }
