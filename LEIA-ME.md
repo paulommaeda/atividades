@@ -1,20 +1,20 @@
-# Journey — Atividades Opcionais 1.1.2
+# Journey — Atividades Opcionais 1.1.3
 
-Plugin único para WordPress: alunos e responsáveis na TOTVS RM, acesso direto por CPF, atividades por turma, inscrição em várias atividades, checkout K8 e acompanhamento.
+Plugin único para WordPress: alunos e responsáveis na TOTVS RM, validação WhatsApp opcional, atividades por turma, inscrição em várias atividades, checkout K8 e acompanhamento.
 
 ## 1. Instalação, na ordem
 
 1. Faça backup dos arquivos e banco do WordPress. Instale primeiro em uma cópia de homologação.
 2. Desative os plugins antigos **Sistema Alunos**, **K8 Cobranças** e **K8 Financeiro**. Não exclua os dados. O plugin unificado bloqueia sua ativação se encontrar os três diretórios originais ativos.
 3. Em **Plugins → Adicionar plugin → Enviar plugin**, envie `journey-atividades.zip` e ative **Journey — Atividades Opcionais**.
-4. Abra **Atividades Journey → Integrações**. Preencha a conexão TOTVS. Não é necessário configurar WhatsApp ou NX.
+4. Abra **Atividades Journey → Integrações**. Preencha a conexão TOTVS e escolha se deseja exigir validação pelo WhatsApp. Quando ligada, preencha o ID da API NX e o token.
 5. Salve e clique em **Sincronizar agora**. Ajuste o mapeamento de colunas até a consulta passar.
 6. Abra **K8 Financeiro → Configurações**, confira ambiente e credenciais de Cobranças. Configure Pay caso queira conciliação, taxas e parcelas de cartão.
 7. Cadastre atividades em **Atividades Journey**: nome, descrição, valor em reais e uma ou várias turmas. Marque **Ativa**.
 8. Crie as duas páginas descritas abaixo. Exclua ambas do cache do WordPress, Nginx/CDN e PWA; não armazene respostas de `admin-ajax.php` no service worker.
 9. Execute o roteiro de homologação antes de divulgar a página aos responsáveis.
 
-Requisitos: WordPress 6.4+, PHP 8.0+ com OpenSSL, HTTPS no site e na API TOTVS, MySQL 8 (ou compatível com InnoDB, GET_LOCK e JSON_CONTAINS), saída HTTPS do servidor para TOTVS e K8. Não é necessário Composer. Em proxy reverso, configure o WordPress para reconhecer corretamente HTTPS.
+Requisitos: WordPress 6.4+, PHP 8.0+ com OpenSSL, HTTPS no site e na API TOTVS, MySQL 8 (ou compatível com InnoDB, GET_LOCK e JSON_CONTAINS), saída HTTPS do servidor para TOTVS e K8 (e NX quando a validação WhatsApp estiver ligada). Não é necessário Composer. Em proxy reverso, configure o WordPress para reconhecer corretamente HTTPS.
 
 ## 2. Páginas e shortcodes
 
@@ -70,10 +70,10 @@ O ZIP original não contém o SQL nem uma amostra real da DADOSREMAT.2. Por isso
 | periodo | IDPERLET; recomendado para separar períodos letivos |
 | cpf_resp1 | CPF do responsável 1, nunca o CPF do aluno |
 | nome_resp1 | Nome do mesmo responsável 1 |
-| telefone_resp1 | Telefone do responsável 1 (opcional para acesso) |
+| telefone_resp1 | Telefone do responsável 1 (necessário para WhatsApp) |
 | cpf_resp2 | CPF do responsável 2, opcional |
 | nome_resp2 | Nome do mesmo responsável 2 |
-| telefone_resp2 | Telefone do responsável 2 (opcional para acesso) |
+| telefone_resp2 | Telefone do responsável 2 (necessário para WhatsApp) |
 
 Você pode usar nomes alternativos separados por `|`. O mapeamento ignora maiúsculas/minúsculas. Campos de responsável 2 podem ficar vazios. A consulta também pode retornar uma linha por vínculo aluno/responsável, sempre preenchendo os campos do responsável 1.
 
@@ -97,22 +97,20 @@ O botão de sincronização exibe os nomes das colunas recebidas, inclusive quan
 
 Envie o novo ZIP pelo WordPress e escolha substituir a versão instalada. Não desinstale nem apague dados. As tabelas novas são criadas automaticamente; atividades, pedidos, senha do painel e configurações existentes são preservados. Depois, em **Atividades Journey → Integrações**, clique em **Sincronizar agora** para fazer a carga inicial. Antes dessa primeira carga, o espelho estará vazio e a validação não buscará dados na TOTVS sob demanda. O cache temporário da versão anterior não é importado como fonte definitiva.
 
-Telefone ausente ou divergente não bloqueia mais o acesso. Cadastros sem CPF válido ou sem alunos vinculados não liberam acesso. Filtre o período letivo na consulta; o mesmo RA não pode ter turmas divergentes no mesmo período/coligada.
+Com WhatsApp desligado, telefone ausente ou divergente não bloqueia o acesso. Com WhatsApp ligado, é necessário um único telefone válido associado ao CPF. Cadastros sem CPF válido ou sem alunos vinculados não liberam acesso. Filtre o período letivo na consulta; o mesmo RA não pode ter turmas divergentes no mesmo período/coligada.
 
-## 4. Acesso por CPF — sem WhatsApp
+## 4. Ligar ou desligar a validação pelo WhatsApp
 
-A partir da versão **1.1.2**, o responsável informa seu CPF e acessa diretamente os alunos vinculados no espelho local. Não há envio de mensagem, confirmação de telefone ou código OTP. Não é necessário configurar a NX Digital. Os campos da NX foram retirados da tela de integrações; valores previamente salvos são preservados, mas não são usados.
+Em **Atividades Journey → Integrações → Acesso dos responsáveis**, marque ou desmarque **Exigir validação pelo WhatsApp** e clique em **Salvar configurações**.
 
-Fluxo:
+- **Ligado (padrão):** CPF → confirmação dos últimos quatro dígitos do telefone → Continuar → código WhatsApp → alunos → atividades. O envio só ocorre ao clicar em Continuar. Preencha o ID da API NX Digital e o token; valores salvos continuam disponíveis. O código vale cinco minutos e permite até cinco tentativas. A sessão após confirmar o código dura quinze minutos.
+- **Desligado:** CPF → alunos → atividades. Não envia mensagens, não exige código, telefone ou credenciais NX. A sessão dura quinze minutos. Conhecer um CPF cadastrado permite consultar os alunos vinculados e iniciar inscrições.
 
-1. Responsável informa o CPF.
-2. O servidor valida o formato/dígitos do CPF e consulta seus vínculos nas tabelas locais.
-3. Se houver alunos vinculados, cria uma sessão aleatória de quinze minutos.
-4. Mostra os alunos para selecionar e depois as atividades disponíveis para a turma.
+A opção vem ligada quando ainda não há preferência salva, inclusive ao atualizar da versão 1.1.2. Escolha o modo desejado e salve. Quando ligada, o salvamento exige ID e token NX válidos no formato esperado, preservando-os se os campos forem deixados em branco. Essa conferência de preenchimento não substitui um teste real de entrega.
 
-O CPF passa a ser a única informação necessária para abrir o acesso. Conhecer um CPF cadastrado permite consultar seus alunos e iniciar inscrições; não há confirmação de posse do documento ou telefone. A senha própria do painel de acompanhamento continua obrigatória.
+Ao mudar a opção, as sessões de inscrição anteriores deixam de valer, mesmo se voltar ao modo anterior depois. O responsável precisa consultar o CPF novamente. A decisão de exigir código é conferida no servidor em alunos, catálogo e pagamento; não depende de uma opção enviada pelo navegador.
 
-Mantêm-se HTTPS, conferência de origem, limites de consultas por CPF/IP, sessão com token armazenado como hash, preços calculados no servidor e restrição aos alunos vinculados. Uma remoção de vínculo no espelho local impede selecionar esse aluno em uma sessão existente. O telefone não participa da autorização. Sessões antigas do fluxo WhatsApp não são aceitas no novo fluxo: basta consultar o CPF novamente.
+Em ambos os modos, a consulta usa o espelho local da TOTVS, confere CPF/vínculo, aplica limites por IP e CPF e exige HTTPS. Remover o vínculo de um aluno impede selecioná-lo em sessões existentes. Com WhatsApp ligado, uma mudança de telefone também exige nova validação. O telefone usado é o associado ao mesmo CPF; o telefone de outro responsável nunca é utilizado. A senha do painel de acompanhamento continua obrigatória.
 
 ## 5. Atividades, valores e cobranças
 
@@ -164,7 +162,7 @@ Para execução regular, configure o cron do servidor para chamar o WP-Cron a ca
 
 1. Teste a TOTVS e confira a turma de dois alunos e os respectivos responsáveis.
 2. Cadastre duas atividades para uma turma e outra atividade para uma turma diferente.
-3. Acesse a página pelo celular: CPF → alunos → atividades, sem mensagem ou código. Teste também um responsável sem telefone e outro com telefone divergente.
+3. Acesse a página pelo celular: teste os dois modos. Ligado: CPF → confirmação de telefone → Continuar → código → alunos. Desligado: CPF → alunos, inclusive para responsável sem telefone ou com telefone divergente.
 4. Confira que não aparece aluno de outro responsável nem atividade de outra turma.
 5. Selecione duas atividades e confira a soma. Teste também um CPF com mais de um aluno.
 6. Gere uma cobrança no ambiente de homologação K8; confira nome do aluno e atividades na descrição, total, responsável e forma de pagamento.
@@ -172,14 +170,14 @@ Para execução regular, configure o cron do servidor para chamar o WP-Cron a ca
 8. Consulte o pedido após um pagamento de teste e confira o estado retornado pelo K8 e a exportação CSV.
 9. Confirme as credenciais e a URL de checkout do ambiente de produção antes de liberar inscrições reais.
 
-Código e telas podem ser validados localmente, mas consulta real à TOTVS e pagamento só podem ser homologados no seu ambiente. Não foram fornecidos URL/credenciais TOTVS, credenciais K8 nem amostra real da DADOSREMAT.2 neste pedido.
+Código e telas podem ser validados localmente, mas consulta real à TOTVS, entrega WhatsApp e pagamento só podem ser homologados no seu ambiente. Não foram fornecidos URL/credenciais TOTVS, credenciais NX/K8 nem amostra real da DADOSREMAT.2 neste pedido.
 
 ## 8. Dados e manutenção
 
 - Dados novos: tabelas `jao_students`, `jao_guardians`, `jao_activities`, `jao_orders`, `jao_reservations`, `jao_bird_sessions`, `jao_bird_limits`, com o prefixo do WordPress.
 - Financeiro preservado: tabelas e opções `k8f_*` existentes.
 - Credenciais novas criptografadas com chave derivada dos salts WordPress; trocar os salts exige salvar novamente as credenciais.
-- Tokens de sessão guardados somente como HMAC; sessões expiradas e limitadores são removidos periodicamente. As tabelas mantêm os nomes antigos `jao_bird_*` para compatibilidade, sem envio WhatsApp.
+- Tokens de sessão guardados somente como HMAC; sessões expiradas e limitadores são removidos periodicamente. As tabelas mantêm os nomes antigos `jao_bird_*` para compatibilidade. Códigos OTP são guardados como HMAC e utilizados somente com WhatsApp ligado.
 - Desativação remove os agendamentos, mas não apaga inscrições, configurações nem financeiro.
 - Não há rotina de exclusão definitiva de dados nesta versão. O histórico anterior fica preservado para backup e consulta.
 - O pacote usa tabelas do site atual; ative por site em instalações multisite.

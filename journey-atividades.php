@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: Journey — Atividades Opcionais
- * Description: TOTVS, acesso por CPF, inscrições por turma, K8 Cobranças e acompanhamento financeiro em um plugin.
- * Version: 1.1.2
+ * Description: TOTVS, validação WhatsApp opcional, inscrições por turma, K8 Cobranças e acompanhamento financeiro em um plugin.
+ * Version: 1.1.3
  * Requires at least: 6.4
  * Requires PHP: 8.0
  * Plugin URI: https://github.com/paulommaeda/atividades
@@ -11,7 +11,7 @@
  */
 if (!defined('ABSPATH')) exit;
 define('JAO_FILE', __FILE__);
-define('JAO_VERSION', '1.1.2');
+define('JAO_VERSION', '1.1.3');
 require_once __DIR__.'/includes/updater.php';
 function jao_conflicts() {
     $active = array_merge((array)get_option('active_plugins', []), array_keys((array)get_site_option('active_sitewide_plugins', [])));

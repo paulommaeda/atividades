@@ -16,6 +16,9 @@ function jao_admin_settings() {
             if (isset($_POST['test_totvs'])) {
                 $result=jao_sync_mirror(!empty($_POST['confirm_empty'])); jao_admin_notice('Espelho atualizado: '.$result['students'].' alunos e '.$result['guardians'].' vínculos com responsáveis.');
             } else {
+                $previous_whatsapp = jao_whatsapp_required($s);
+                $s['whatsapp_validation'] = jao_post('whatsapp_validation') === '1' ? '1' : '0';
+                if ($previous_whatsapp !== jao_whatsapp_required($s)) $s['auth_revision'] = bin2hex(random_bytes(16));
                 foreach (['totvs_url','coligada','sistema','parameters','checkout_url','due_days'] as $key) $s[$key]=jao_post($key);
                 foreach (['totvs_url','checkout_url'] as $key) {
                     $url=wp_parse_url($s[$key]);
@@ -27,13 +30,14 @@ function jao_admin_settings() {
                     $v=isset($_POST[$key])&&is_string($_POST[$key])?trim(wp_unslash($_POST[$key])):'';
                     $secrets[$key]=$v!==''?$v:jao_secret($key);
                 }
+                if (jao_whatsapp_required($s) && (!preg_match('/^[A-Za-z0-9_-]{1,100}$/D', $secrets['nx_id']) || !$secrets['nx_token'])) throw new RuntimeException('Para ligar a validação pelo WhatsApp, preencha o ID da API NX e o token.');
                 foreach (jao_map_defaults() as $key=>$default) $s['maps'][$key]=jao_post('map_'.$key);
                 $s['sync_interval']=isset(jao_sync_intervals()[jao_post('sync_interval')])?jao_post('sync_interval'):'hourly';
                 update_option('jao_secrets',\K8F\Core::seal(wp_json_encode($secrets)),false); update_option('jao_settings',$s,false);
                 if (jao_post('dash_password')!=='') update_option('jao_dashboard_hash',wp_hash_password(wp_unslash($_POST['dash_password'])),false);
                 delete_transient('jao_totvs_rows'); jao_schedule_mirror(); jao_admin_notice('Configurações salvas. Clique em Sincronizar agora para atualizar o espelho com estas configurações.');
             }
-        } catch (Throwable $e) { jao_admin_notice($e->getMessage(),true); }
+        } catch (Throwable $e) { $s=jao_settings(); jao_admin_notice($e->getMessage(),true); }
     }
     $mirror=(array)get_option('jao_mirror_status',[]);
     echo '<h2>Espelho local da TOTVS</h2><p>Última sincronização concluída: '.esc_html($mirror['last_success']??'Ainda não realizada').' · Alunos: '.(int)($mirror['students']??0).' · Vínculos de responsáveis: '.(int)($mirror['guardians']??0).'</p>';
@@ -43,10 +47,12 @@ function jao_admin_settings() {
     $last=get_option('jao_totvs_status',[]);
     if ($last) echo '<p>Última consulta: '.esc_html($last['time'].' · '.$last['count'].' registros').'</p><details><summary>Colunas retornadas pela TOTVS</summary><p>'.esc_html(implode(', ',$last['columns'])).'</p></details>';
     echo '<form method="post">'; wp_nonce_field('jao_settings');
+    echo '<h2>Acesso dos responsáveis</h2><p><label><input type="checkbox" name="whatsapp_validation" value="1" '.checked(jao_whatsapp_required($s),true,false).'> Exigir validação pelo WhatsApp</label></p><p class="description">Ligado: exige código enviado ao WhatsApp cadastrado. Desligado: permite acessar os alunos apenas com o CPF cadastrado. Ao mudar esta opção, os responsáveis precisam consultar o CPF novamente.</p>';
     $fields=['totvs_url'=>['URL base da API TOTVS (ex.: https://rm.exemplo.com:8051)','text',''],
         'totvs_user'=>['Usuário TOTVS','password',''],'totvs_password'=>['Senha TOTVS','password',''],
         'coligada'=>['Coligada da consulta','text','1'],'sistema'=>['Sistema da consulta (normalmente S — Educacional)','text','S'],
         'parameters'=>['Parâmetros da DADOSREMAT.2 (se houver; ex.: CODCOLIGADA=1;IDPERLET=2026)','text',''],
+        'nx_id'=>['ID da API NX Digital (para validação WhatsApp)','password',''],'nx_token'=>['Token da API NX Digital / WhatsApp','password',''],
         'checkout_url'=>['URL base do checkout K8 (confirme a URL para o ambiente escolhido)','url','https://pagamentos.k8bank.com.br/cobrancasui/checkout'],
         'due_days'=>['Vencimento após quantos dias (1 a 30)','number','5'],'dash_password'=>['Nova senha do painel externo (vazio mantém a atual)','password','']];
     echo '<table class="form-table">';

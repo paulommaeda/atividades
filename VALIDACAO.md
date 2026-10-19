@@ -1,3 +1,18 @@
+# Validação — versão 1.1.3
+
+Data: 19/10/2026.
+
+- Sintaxe JavaScript verificada com `node --check`.
+- Interface executada em Node com DOM e API simulados, cobrindo os dois modos. Ligado: mostra últimos quatro dígitos, não envia mensagem antes de Continuar, pede OTP, troca o token após confirmar e só então consulta alunos. Código incorreto mantém a tela de código sem consultar alunos. Voltar não envia mensagem. Desligado: CPF → alunos → catálogo, sem chamar envio ou checagem. Também conferidos CPF não localizado, limpeza do token ao sair e senha do dashboard.
+- Revisão estática do PHP: padrão ligado sem preferência salva; opção persistida com permissão/nonce de administrador; credenciais NX preservadas; necessidade de OTP escolhida no servidor; estado verificado/identificado exigido conforme a opção; verificação de telefone somente com WhatsApp ligado; envio e checagem recusados com opção desligada. A mudança de opção gera nova revisão no hash das sessões, invalidando tokens anteriores inclusive ao voltar ao modo anterior.
+- Comparação confirma que os arquivos de checkout, TOTVS, dashboard e financeiro não foram alterados nesta versão. Integridade do ZIP e versão conferidas na embalagem.
+
+Limites: PHP e navegador não estão instalados neste ambiente. A revisão PHP é estática, sem execução ou lint PHP. Não foram feitas chamadas reais NX/TOTVS/K8 nem instalação em WordPress/MySQL real. Homologar: salvar ligado/desligado, entrega WhatsApp, OTP errado/expirado, acesso direto sem telefone, sessão expirada e mudança de modo com sessões abertas. Uma mudança de modo deve pedir nova consulta do CPF; o modo ligado deve impedir usar uma sessão anterior de acesso direto.
+
+Os registros anteriores abaixo são históricos das respectivas versões.
+
+---
+
 # Validação — versão 1.1.2
 
 Data: 19/10/2026.
